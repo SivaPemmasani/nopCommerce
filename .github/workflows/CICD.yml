@@ -1,0 +1,62 @@
+name: Build and Deploy NopCommerce
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Set up .NET SDK
+    - name: Set up .NET SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '9.0'  # .NET 9.0 SDK
+
+    # Step 3: Restore NuGet packages
+    - name: Restore NuGet packages
+      run: dotnet restore ./src/NopCommerce.sln
+
+    # Step 4: Build the solution
+    - name: Build the solution
+      run: dotnet build ./src/NopCommerce.sln --configuration Release --no-incremental
+
+    # Step 5: Publish the Nop.Web project
+    - name: Publish Nop.Web
+      run: |
+        dotnet publish ./src/Presentation/Nop.Web/Nop.Web.csproj \
+          --configuration Release \
+          --output ./app/published
+
+    # Step 6: Install additional dependencies (like libgdiplus, icu-libs, etc.)
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libgdiplus \
+          libc6-dev \
+          tiff \
+          tzdata
+
+    # Step 7: (Optional) Deploy the application (e.g., to a server or cloud service)
+    # For example, use SSH to deploy to a remote server, or use Azure CLI if deploying to Azure
+    - name: Deploy to server
+      run: |
+        # Example: Copy files to a server using SCP/SSH (replace with your server details)
+        scp -r ./app/published user@your-server:/var/www/nopcommerce
+        ssh user@your-server 'systemctl restart nopcommerce'
+
+    # Step 8: Clean up (Optional)
+    - name: Clean up
+      run: |
+        rm -rf ./app/published
