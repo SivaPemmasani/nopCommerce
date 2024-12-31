@@ -45,7 +45,7 @@ jobs:
         sudo apt-get install -y \
           libgdiplus \
           libc6-dev \
-          tiff \
+          libtiff-dev \
           tzdata
 
     # Step 7: (Optional) Deploy the application (e.g., to a server or cloud service)
